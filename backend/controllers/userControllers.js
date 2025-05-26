@@ -44,6 +44,12 @@ module.exports.loginUser = async (req, res,next) => {
         return res.status(401).json({message:'Invalid  password'});
     }
     const token = user.generateAuthToken();
+     res.cookie('token', token, {
+    httpOnly: true,
+    secure: true,         // Use HTTPS in production
+    sameSite: 'None',     // Allows cookies from different origins
+    maxAge: 24 * 60 * 60 * 1000 // 1 day
+  });
     res.cookie('token', token);
      
      res.status(200).json({token,user});
