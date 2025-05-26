@@ -8,9 +8,13 @@ const userRoutes = require('./routes/userRoutes');
 
 const app = express();
 
-app.use(cors());
+app.use(cors ({
+    origin: 'http://localhost:5173',
+    credentials: true,
+  }));
 app.use(express.json()); // parse JSON
 app.use(cookieparser());
+app.use(express.urlencoded({extended: true}));// parse URL-encoded data
 
 // Routes
 app.use('/books', bookRoutes);

@@ -28,14 +28,54 @@ module.exports.createBook = async (req, res) => {
     res.status(500).json({ message: 'Server error while creating book' });
   }
 };
+// module.exports.getAllBooks = async (req, res) => {
+//   const page = parseInt(req.query.page) || 1;
+//   const limit = parseInt(req.query.limit) || 10;
+
+//   try {
+//     const skip = (page - 1) * limit;
+//     const totalBooks = await Book.countDocuments();
+//     const books = await Book.find().skip(skip).limit(limit).sort({ createdAt: -1 });
+
+//     res.status(200).json({
+//       totalBooks,
+//       totalPages: Math.ceil(totalBooks / limit),
+//       currentPage: page,
+//       books,
+//     });
+//   } catch (error) {
+//     console.error('Error fetching books:', error);
+//     res.status(500).json({ message: 'Server error while fetching books' });
+//   }
+// };
 module.exports.getAllBooks = async (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
+  const search = req.query.search || '';
+  const genre = req.query.genre || '';
 
   try {
     const skip = (page - 1) * limit;
-    const totalBooks = await Book.countDocuments();
-    const books = await Book.find().skip(skip).limit(limit).sort({ createdAt: -1 });
+
+    // Build query
+    const query = {};
+    if (search) {
+  const searchRegex = new RegExp(search.split(' ').join('|'), 'i');
+  query.$or = [
+    { title: { $regex: searchRegex } },
+    { author: { $regex: searchRegex } },
+  ];
+}
+
+    if (genre) {
+      query.genre= genre; // exact match category filter
+    }
+
+    const totalBooks = await Book.countDocuments(query);
+    const books = await Book.find(query)
+      .sort({ createdAt: -1 }) // newest first
+      .skip(skip)
+      .limit(limit);
 
     res.status(200).json({
       totalBooks,
